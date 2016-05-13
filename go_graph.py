@@ -5,24 +5,17 @@ from OpenGL.GLU import *
 import random
 import math
 
+
 def distance(alpha,beta):
+    '''
+    Finds the distance between two points represented by two tuples.
+    '''
     return math.sqrt((alpha[0]-beta[0])**2 + (alpha[1]-beta[1])**2)
 
-def drawpoint(loc,big=False,color=(0.087,0.082,0.071)):
-    glColor3f(*color)
-    if big:
-        glPointSize(50)
-        glEnable(GL_POINT_SMOOTH)
-        glBegin(GL_POINTS)
-        glVertex3f(loc[0], loc[1],0.1)
-    else:
-        glPointSize(10)
-        glEnable(GL_POINT_SMOOTH)
-        glBegin(GL_POINTS)
-        glVertex3f(loc[0], loc[1],0.0)
-    glEnd()
-
 def drawedge(alpha,beta):
+    '''
+    Draws a line between two points represented by two Point objects.
+    '''
     glColor3f(0.087,0.082,0.071) 
     glPointSize(3)
     glBegin(GL_LINES)
@@ -31,6 +24,11 @@ def drawedge(alpha,beta):
     glEnd()
 
 def generate_points(size):
+    '''
+    Generates a set of tuples (with a density represented by size) within the range (-1..1,-1..1)
+    It does this using a dumber variant of Bridson's Algorithm for Poission Disc Sampling. 
+    If would run in linear time rather than in quadratic time if it was implemented better
+    '''
     firstpoint = (random.uniform(0,1),random.uniform(0,1))
     points = [firstpoint]
     active_points = [firstpoint]
@@ -55,9 +53,13 @@ def generate_points(size):
             break
         else:
             active_points.remove(test)  
-    return points  
+    return [(p[0]/(0.5*size)-1,p[1]/(0.5*size)-1) for p in points]
 
 def generate_edges(points,sparsity,scale):
+    '''
+    Generates a list of edges for the list of points given to it
+    Only makes edges between nearby points for ease of reading/playing
+    '''
     edges = []
     for current in points:
         possible = []
@@ -74,37 +76,43 @@ def generate_edges(points,sparsity,scale):
     return edges
 
 class Point:
+    '''
+    This class represents a point, it's edges, and how to render it.
+    '''
     blank = (0.174,0.164,0.142)
     black = (0.1,0.1,0.1)
     white = (0.9,0.9,0.9)
+    player1 = 1
+    player2 = 2
+    empty = 0
     def __init__(self,xpos,ypos):
         self.x = xpos
         self.y = ypos
         self.edges = []
         self.color = Point.blank
-        self.state = 0
+        self.state = Point.empty
     def addEdge(self,other):
         self.edges.append(other)
-    def changeState(self,newstate):
-        if newstate not in {0,1,2}:
-            raise ValueError
+    def changeState(self,newstate):     
         self.state = newstate
-        if self.state == 0:
+        if self.state == Point.empty:
             self.color = Point.blank
-        elif self.state == 1:
+        elif self.state == Point.player1:
             self.color = Point.black
-        else:
+        elif self.state == Point.player2:
             self.color = Point.white
+        else:
+            raise ValueError
     def render(self,state=None):
         if state != None:
-            if state == 1:
+            if state == Point.player1:
                 glColor3f(*Point.black)
-            elif state == 2:
+            elif state == Point.player2:
                 glColor3f(*Point.white)
         else:
             state = self.state
             glColor3f(*self.color)
-        if state in {1,2}:
+        if state != Point.empty:
             glPointSize(50)
         else:
             glPointSize(10)
@@ -123,11 +131,13 @@ class Point:
                 e.explore()
 
 class LocalGraph:
+    '''
+    This is the base class of the 
+    '''
     def __init__(self,size,sparsity,dim):
         self.dim = dim
         self.size = size
         self.points = generate_points(size)
-        self.points = [(p[0]/(0.5*size)-1,p[1]/(0.5*size)-1) for p in self.points]
         self.points = [Point(p[0],p[1]) for p in self.points]
         self.edges = generate_edges(self.points,sparsity,size)
         for e in self.edges:

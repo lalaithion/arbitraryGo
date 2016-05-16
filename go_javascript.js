@@ -55,47 +55,36 @@ class Edge {
 
 class Board {
     constructor(size,dim) {
-        console.log("begin")
         this.points = [];
         this.generatePoints(size,dim);
-        console.log(this.points);
-        console.log(this.points[0]);
-        console.log(this.points[1]);
         this.edges = [];
+        this.generateEdges(size,dim);
         this.fill()
     }
     generatePoints(size,dim) {
-        console.log("generate")
         var firstpoint = new Point(Math.random()*size, Math.random()*size);
         var temppoints = [firstpoint];
         var activepoints = [firstpoint];
         while (activepoints.length > 0) {
-            debugger;
             var test = activepoints[Math.floor(Math.random()*activepoints.length)];
             var sucess = false;
             for (var i = 0; i < 10; i++) {
                 var r = (Math.random()*0.5) + 0.5;
                 var t = Math.random()*2*Math.PI;
                 var x = Math.cos(t)*r + test.x;
-                var y = Math.cos(t)*r + test.y;
+                var y = Math.sin(t)*r + test.y;
                 var p = new Point(x,y);
                 var valid = true;
-                if (x > size || x < 0) {
+                if (x > size-0.5 || x < 0.5) {
                     continue;
                 }
-                if (y > size || y < 0) {
+                if (y > size-0.5 || y < 0.5) {
                     continue;
                 }
                 for (var j = 0; j < temppoints.length; j++) {
-                    try {
-                        if (temppoints[i].distance(p) < 0.5) {
-                            valid = false;
-                            break;
-                        }
-                    }
-                    catch (err) {
-                        console.log(err)
-                        debugger;
+                    if (temppoints[j].distance(p) < 0.5) {
+                        valid = false;
+                        break;
                     }
                 }
                 if (valid) {
@@ -106,27 +95,44 @@ class Board {
                 }
             }
             if (!sucess) {
-                console.log("remove")
                 var index = activepoints.indexOf(test);
                 if (index > -1) {
-                    console.log(activepoints.length);
                     activepoints.splice(index, 1);
-                    console.log(activepoints.length);
                 }
             }
         }
         for(var i = 0; i < temppoints.length; i++) {
             var x = temppoints[i].x;
-            var y = temppoints[i].x;
+            var y = temppoints[i].y;
             x = dim*(x/size);
             y = dim*(y/size);
             this.points.push(new Point(x,y));
+        }
+    }
+    generateEdges(size,dim) {
+        for (var i = 0; i < this.points.length; i++) {
+            var possible = [];
+            for (var j = 0; j < this.points.length; j++) {
+                if (this.points[i].distance(this.points[j]) < (dim/size) && i != j) {
+                    possible.push(new Edge(this.points[i],this.points[j]));
+                }
+            }
+            for (var j = 0; j < possible.length; j++) {
+                if (Math.random() > 0.5) {
+                    this.edges.push(possible[j]);
+                }
+            }
         }
     }
     fill() {
         for(var i = 0; i < this.edges.length; i++) {
             this.edges[i].alpha.addedge(this.edges[i].beta);
             this.edges[i].beta.addedge(this.edges[i].alpha);
+        }
+        for(var i = 0; i < this.points.length; i++) {
+            if (this.points[i].edges.length == 0) {
+                this.points.splice(i,1);
+            }
         }
     }
     draw(two) {
@@ -140,11 +146,9 @@ class Board {
 }
 
 function main() {
-    console.log("starting")
     var elem = document.getElementById('goBoard');
     var two = new Two({ width: 700, height: 700 }).appendTo(elem);
 
-    console.log("constructing")
     var board = new Board(5,700);
     board.draw(two)
 

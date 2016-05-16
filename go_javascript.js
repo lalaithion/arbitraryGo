@@ -27,11 +27,21 @@ class Point {
             this.edges.push(other);
         }
     }
-    draw(two,size,player) {
+    draw(two,player) {
         var circle = two.makeCircle(this.x,this.y,this.size);
-        circle.fill = this.color;
+        if (this.player == 0) {
+            if (player == 1) {
+                circle.fill = 'black';
+            } else if (player == 2) {
+                circle.fill = 'white';
+            } else {
+                circle.fill = 'grey';
+            }
+        }
+        else {
+            circle.fill = this.color;
+        }
         circle.linewidth = 2;
-        circle.stroke = 'black'
     }
     distance(other) {
         var dx = this.x - other.x;
@@ -59,9 +69,13 @@ class Board {
         this.generatePoints(size,dim);
         this.edges = [];
         this.generateEdges(size,dim);
-        this.fill()
+        this.fill();
+        this.turn = 1;
+        this.lastmove = null;
+        this.current = -1;
     }
-    generatePoints(size,dim) {
+    generatePoints(size,dim,square=true) {
+        var center = new Point(size/2.0, size/2.0);
         var firstpoint = new Point(Math.random()*size, Math.random()*size);
         var temppoints = [firstpoint];
         var activepoints = [firstpoint];
@@ -75,11 +89,17 @@ class Board {
                 var y = Math.sin(t)*r + test.y;
                 var p = new Point(x,y);
                 var valid = true;
-                if (x > size-0.5 || x < 0.5) {
-                    continue;
-                }
-                if (y > size-0.5 || y < 0.5) {
-                    continue;
+                if(square) {
+                    if (x > size-0.5 || x < 0.5) {
+                        continue;
+                    }
+                    if (y > size-0.5 || y < 0.5) {
+                        continue;
+                    }
+                } else {
+                    if (p.distance(center) > size/2.0) {
+                        continue;
+                    }
                 }
                 for (var j = 0; j < temppoints.length; j++) {
                     if (temppoints[j].distance(p) < 0.5) {
@@ -135,11 +155,26 @@ class Board {
             }
         }
     }
+    setCurrent(x,y) {
+        var pos = new Point(x,y);
+        var min = 0;
+        for(var i = 0; i < this.points.length; i++) {
+            if (pos.distance(this.points[i]) < pos.distance(this.points[min])) {
+                min = i;
+            }
+        }
+        this.current = min;
+        console.log(this.current);
+    }
     draw(two) {
+        console.log(this.current)
         for(var i = 0; i < this.edges.length; i++) {
             this.edges[i].draw(two);
         }
         for(var i = 0; i < this.points.length; i++) {
+            if (i == this.current) {
+                this.points[i].draw(two,this.turn);
+            }
             this.points[i].draw(two);
         }
     }
@@ -150,7 +185,7 @@ function main() {
     var two = new Two({ width: 700, height: 700 }).appendTo(elem);
 
     var board = new Board(5,700);
-    board.draw(two)
 
-    two.bind('update', function(frameCount) {}).play();
+    board.draw(two)
+    two.update();
 }

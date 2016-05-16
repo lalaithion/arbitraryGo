@@ -39,9 +39,9 @@ def generate_points(size):
             y = math.sin(theta)*r + test[1]
             if 0.2 > x or x > (size-0.2) or 0.2 > y  or y > (size-0.2):
                 continue
-            for i in points:
+            for j in points:
                 valid = True
-                if distance(i, (x,y)) < 0.5:
+                if distance(j, (x,y)) < 0.5:
                     valid = False
                     break
             if not valid:
@@ -219,6 +219,5 @@ if __name__ == "__main__":
     glutIdleFunc(board.render) 
     glutPassiveMotionFunc(board.update_active)
     glutMouseFunc(board.click)
-
 
     glutMainLoop()

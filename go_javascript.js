@@ -76,7 +76,7 @@ class Board {
     }
     generatePoints(size,dim,square=true) {
         var center = new Point(size/2.0, size/2.0);
-        var firstpoint = new Point(Math.random()*size, Math.random()*size);
+        var firstpoint = new Point((Math.random()*(size-1))+0.5, Math.random()*(size-1)+0.5);
         var temppoints = [firstpoint];
         var activepoints = [firstpoint];
         while (activepoints.length > 0) {
@@ -182,9 +182,11 @@ class Board {
 
 function main() {
     var elem = document.getElementById('goBoard');
-    var two = new Two({ width: 700, height: 700 }).appendTo(elem);
+    var two = new Two({ type: Two.Types.webgl, width: 700, height: 700 }).appendTo(elem);
 
     var board = new Board(5,700);
+
+    console.log(board);
 
     board.draw(two)
     two.update();

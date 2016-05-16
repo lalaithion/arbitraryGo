@@ -1,10 +1,8 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
-from OpenGL.GLU import *
 
 import random
 import math
-
 
 def distance(alpha,beta):
     '''
@@ -132,7 +130,7 @@ class Point:
 
 class LocalGraph:
     '''
-    This is the base class of the 
+    This is the base class of the entire board
     '''
     def __init__(self,size,sparsity,dim):
         self.dim = dim

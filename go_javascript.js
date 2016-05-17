@@ -6,6 +6,7 @@ class Point {
         this.player = 0;
         this.size = 8;
         this.edges = [];
+        this.liberty = false;
     }
     update(player) {
         if(player === 0) {
@@ -15,11 +16,11 @@ class Point {
         } else if(player === 1) { 
             this.player = 1;
             this.color = 'black';
-            this.size = 32;
+            this.size = 24;
         } else if(player === 2) { 
             this.player = 2;
             this.color = 'white';
-            this.size = 32;
+            this.size = 24;
         }
     }
     addedge(other) {
@@ -28,25 +29,38 @@ class Point {
         }
     }
     draw(two,player) {
-        var circle = two.makeCircle(this.x,this.y,this.size);
-        if (this.player == 0) {
-            if (player == 1) {
-                circle.fill = 'black';
-            } else if (player == 2) {
-                circle.fill = 'white';
-            } else {
-                circle.fill = 'grey';
-            }
-        }
-        else {
+        if(player == undefined) {
+            var circle = two.makeCircle(this.x,this.y,this.size);
             circle.fill = this.color;
+            circle.linewidth = 2;
+        } else if(player == 1 && this.player == 0) {
+            var circle = two.makeCircle(this.x,this.y,24);
+            circle.fill = 'black';
+            circle.linewidth = 2;
+        } else if(player == 2 && this.player == 0) {
+            var circle = two.makeCircle(this.x,this.y,24);
+            circle.fill = 'white';
+            circle.linewidth = 2;
+        } else {
+            var circle = two.makeCircle(this.x,this.y,this.size);
+            circle.fill = this.color;
+            circle.linewidth = 2;
         }
-        circle.linewidth = 2;
     }
     distance(other) {
         var dx = this.x - other.x;
         var dy = this.y - other.y;
         return Math.sqrt((dx * dx) + (dy * dy));
+    }
+    explore() {
+        for (var i = 0; i < this.edges.length; i++) {
+            var sameplayer = this.edges[i].player == this.player;
+            var unexplored = !this.edges[i].liberty;
+            if (sameplayer && unexplored) {
+                this.edges[i].liberty = true;
+                this.edges[i].explore;
+            }
+        }
     }
 }
 
@@ -66,7 +80,7 @@ class Edge {
 class Board {
     constructor(size,dim) {
         this.points = [];
-        this.generatePoints(size,dim);
+        this.generatePoints(size,dim,false);
         this.edges = [];
         this.generateEdges(size,dim);
         this.fill();
@@ -76,7 +90,7 @@ class Board {
     }
     generatePoints(size,dim,square=true) {
         var center = new Point(size/2.0, size/2.0);
-        var firstpoint = new Point((Math.random()*(size-1))+0.5, Math.random()*(size-1)+0.5);
+        var firstpoint = new Point((Math.random()*(size-3))+1.5, Math.random()*(size-3)+1.5);
         var temppoints = [firstpoint];
         var activepoints = [firstpoint];
         while (activepoints.length > 0) {
@@ -97,7 +111,7 @@ class Board {
                         continue;
                     }
                 } else {
-                    if (p.distance(center) > size/2.0) {
+                    if (p.distance(center) > (size/2.0)-0.5) {
                         continue;
                     }
                 }
@@ -164,18 +178,59 @@ class Board {
             }
         }
         this.current = min;
-        console.log(this.current);
+    }
+    play(x,y) {
+        this.setCurrent(x,y);
+        if (this.points[this.current].player == 0) {
+            this.points[this.current].update(this.turn);
+            if (this.turn == 1) { this.turn = 2; }
+            else if (this.turn == 2) { this.turn = 1; }
+        }
+        console.log(this.points[this.current].edges.length);
+        this.capture();
     }
     draw(two) {
-        console.log(this.current)
         for(var i = 0; i < this.edges.length; i++) {
             this.edges[i].draw(two);
         }
         for(var i = 0; i < this.points.length; i++) {
-            if (i == this.current) {
+            if(i == this.current) {
                 this.points[i].draw(two,this.turn);
+            } else {
+                this.points[i].draw(two);
             }
-            this.points[i].draw(two);
+        }
+    }
+    capture(first=true) {
+        for(var i = 0; i < this.points.length; i++) {
+            this.points[i].liberty = false;
+        }
+        for(var i = 0; i < this.points.length; i++) {
+            if (this.points[i].player == 2 || this.points[i].player == 1) {
+                if (i == this.current && first) {
+                    this.points[i].liberty = true;
+                    continue;
+                }
+                for(var j = 0; j < this.points[i].edges.length; j++) {
+                    if (this.points[i].edges[j].player == 0) {
+                        this.points[i].liberty = true;
+                        break;
+                    }
+                }
+            }
+        }
+        for(var i = 0; i < this.points.length; i++) {
+            if (this.points[i].liberty) {
+                this.points[i].explore();
+            }
+        }
+        for(var i = 0; i < this.points.length; i++) {
+            if (this.points[i].liberty == false) {
+                this.points[i].update(0);
+            }
+        }
+        if (first) {
+            this.capture(false)
         }
     }
 }
@@ -184,10 +239,16 @@ function main() {
     var elem = document.getElementById('goBoard');
     var two = new Two({ type: Two.Types.webgl, width: 700, height: 700 }).appendTo(elem);
 
-    var board = new Board(5,700);
+    var board = new Board(7,700);
 
     console.log(board);
 
-    board.draw(two)
-    two.update();
+    var x,y;
+    elem.onmousemove = function(event) { board.setCurrent(event.offsetX,event.offsetY); };
+    elem.onclick = function(event) { board.play(event.offsetX,event.offsetY); };
+
+    two.bind('update', function(frameCount) {
+        two.clear();
+        board.draw(two);
+    }).play();
 }

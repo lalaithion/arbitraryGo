@@ -7,7 +7,6 @@ class Point {
         this.size = 8;
         this.edges = [];
         this.liberty = false;
-        this.owned = -1;
     }
     update(player) {
         if(player === 0) {
@@ -63,9 +62,6 @@ class Point {
             }
         }
     }
-    ownership() {
-        
-    }
 }
 
 class Edge {
@@ -82,15 +78,9 @@ class Edge {
 }
 
 class Board {
-    constructor(size,dim,layout) {
+    constructor(size,dim) {
         this.points = [];
-        if (layout == 0) {
-        	this.generateRandomPoints(size,dim);
-        } else if (layout == 1) {
-        	this.generateSquarePoints(size,dim);
-        } else if (layout == 2) {
-            this.generateHexPoints(size,dim);
-        }
+        this.generatePoints(size,dim,false);
         this.edges = [];
         this.generateEdges(size,dim);
         this.fill();
@@ -98,9 +88,7 @@ class Board {
         this.lastmove = null;
         this.current = -1;
     }
-    generateRandomPoints(size,dim) {
-    	this.sparsity = 0.5
-    	var square = false;
+    generatePoints(size,dim,square=true) {
         var center = new Point(size/2.0, size/2.0);
         var firstpoint = new Point((Math.random()*(size-3))+1.5, Math.random()*(size-3)+1.5);
         var temppoints = [firstpoint];
@@ -155,80 +143,16 @@ class Board {
             this.points.push(new Point(x,y));
         }
     }
-    generateSquarePoints(size,dim) {
-    	this.sparsity = 1.0;
-    	var temppoints = [];
-    	var row = .9;
-    	var column = .9;
-    	while (temppoints.length < size*size) {
-    		temppoints.push(new Point(row,column));
-    		if (row >= size-2.0) {
-    			column += .8;
-    			row = .9;
-    		} else {
-    			row += .8;
-    		}
-    	}
-    	for(var i = 0; i < temppoints.length; i++) {
-            var x = temppoints[i].x;
-            var y = temppoints[i].y;
-            x = dim*(x/size);
-            y = dim*(y/size);
-            this.points.push(new Point(x,y));
-        }
-    }
-    generateHexPoints(size,dim) {
-        this.sparsity = 1.0;
-        var temppoints = []
-        var startx = 0.5*size;
-        var starty = 0.5*size;
-        temppoints.push(new Point(startx,starty));
-        var directions = [[Math.cos(0),Math.sin(0)],
-                         [Math.cos(Math.PI/3),Math.sin(Math.PI/3)],
-                         [Math.cos(2*Math.PI/3),Math.sin(2*Math.PI/3)],
-                         [Math.cos(Math.PI),Math.sin(Math.PI)],
-                         [Math.cos(4*Math.PI/3),Math.sin(4*Math.PI/3)],
-                         [Math.cos(5*Math.PI/3),Math.sin(5*Math.PI/3)]];
-        var current = 0;
-        while (current < temppoints.length) {
-            var cpoint = temppoints[current];
-            for (var i = 0; i < directions.length; i++) {
-                var d = directions[i];
-                var good = true;
-                var candidate = new Point(cpoint.x + d[0], cpoint.y + d[1]);
-                if (temppoints[0].distance(candidate) > (size/2)-0.1) {
-                    continue;
-                }
-                for (var j = 0; j < temppoints.length; j++) {
-                    if (temppoints[j].distance(candidate) < 0.001*size) {
-                        good = false;
-                        break;
-                    }
-                }
-                if (good) {
-                    temppoints.push(candidate);
-                }
-            }
-            current += 1;
-        }
-        for(var i = 0; i < temppoints.length; i++) {
-            var x = temppoints[i].x;
-            var y = temppoints[i].y;
-            x = dim*(x/size);
-            y = dim*(y/size);
-            this.points.push(new Point(x,y));
-        }
-    }
     generateEdges(size,dim) {
         for (var i = 0; i < this.points.length; i++) {
             var possible = [];
             for (var j = 0; j < this.points.length; j++) {
-                if (this.points[i].distance(this.points[j]) < (dim/size)+1 && i != j) {
+                if (this.points[i].distance(this.points[j]) < (dim/size) && i != j) {
                     possible.push(new Edge(this.points[i],this.points[j]));
                 }
             }
             for (var j = 0; j < possible.length; j++) {
-                if (Math.random() < this.sparsity) {
+                if (Math.random() > 0.5) {
                     this.edges.push(possible[j]);
                 }
             }
@@ -262,6 +186,7 @@ class Board {
             if (this.turn == 1) { this.turn = 2; }
             else if (this.turn == 2) { this.turn = 1; }
         }
+        console.log(this.points[this.current].edges.length);
         this.capture();
     }
     draw(two) {
@@ -308,42 +233,19 @@ class Board {
             this.capture(false)
         }
     }
-    score() {
-    	return String(Math.random());
-    }
 }
 
 function main() {
     var elem = document.getElementById('goBoard');
-    var two = new Two({ width: 700, height: 700 }).appendTo(elem);
-    var ref = elem.children[0].getBoundingClientRect();
+    var two = new Two({ type: Two.Types.webgl, width: 700, height: 700 }).appendTo(elem);
 
-    var board = new Board(7,700,0);
+    var board = new Board(7,700);
 
     console.log(board);
 
-    elem.onmousemove = function(event) { 
-        ref = elem.children[0].getBoundingClientRect(); 
-        board.setCurrent(event.clientX-ref.left, event.clientY-ref.top); 
-    };
-
-    elem.onmousedown = function(event) { 
-        ref = elem.children[0].getBoundingClientRect();
-        board.play(event.clientX-ref.left, event.clientY-ref.top);
-        document.getElementById('score').innerHTML = board.score();
-    };
-
-    document.getElementById('newRandom').onclick = function () {
-    	board = new Board(7,700,0);
-    }
-
-    document.getElementById('newSquare').onclick = function () {
-    	board = new Board(7,700,1);
-    }
-
-    document.getElementById('newHex').onclick = function () {
-    	board = new Board(7,700,2)
-    }
+    var x,y;
+    elem.onmousemove = function(event) { board.setCurrent(event.offsetX,event.offsetY); };
+    elem.onclick = function(event) { board.play(event.offsetX,event.offsetY); };
 
     two.bind('update', function(frameCount) {
         two.clear();

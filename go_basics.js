@@ -1,4 +1,7 @@
 class Set {
+  //This is a simple set class that contains an array with adding and existence
+  //testing which does not allow for duplicates. This homebrew is preferred
+  //over relying on a inconsistenly created and applied standard.
   constructor() {
     this.data = [];
   }
@@ -19,6 +22,8 @@ class Set {
 }
 
 class Point {
+  //This class represents a point on the board which can be played on by either
+  //player
   constructor(x, y) {
     this.x = x;
     this.y = y;
@@ -30,6 +35,7 @@ class Point {
     this.owned = -1;
   }
 
+  //This method updates who is occupying this point
   update(player) {
     if (player === 0) {
       this.player = 0;
@@ -52,6 +58,9 @@ class Point {
     }
   }
 
+  //This method draws the point on the canvas provided by the first argument
+  //with an option for drawing it as being a certain players if the space
+  //is already blank
   draw(two, player) {
     if (player == undefined) {
       var circle = two.makeCircle(this.x, this.y, this.size);
@@ -72,12 +81,15 @@ class Point {
     }
   }
 
+  //This method returns the distance between two points
   distance(other) {
     var dx = this.x - other.x;
     var dy = this.y - other.y;
     return Math.sqrt((dx * dx) + (dy * dy));
   }
 
+  //This method is used to figure out if a group of pieces have a liberty or not
+  //TODO: This doesn't actually work quite right
   explore() {
     for (var i = 0; i < this.edges.length; i++) {
       var sameplayer = this.edges[i].player == this.player;
@@ -89,11 +101,14 @@ class Point {
     }
   }
 
+  //This method is used to figure out which groups of blank spaces is
+  //surrounded by a player
+  //TODO: This doesn't work at all
   ownership() {
     var neighbors = new Set();
     for (var i = 0; i < this.edges.length; i++) {
       var empty = this.edges[i].player == 0;
-      var unexplored = this.edges.owned == -1;
+      var unexplored = this.edges[i].owned == -1;
       console.log(empty);
       console.log(unexplored);
       if (empty && unexplored) {
@@ -114,6 +129,7 @@ class Point {
 }
 
 class Edge {
+  //This class represents an edge between two points
   constructor(alpha, beta) {
     this.alpha = alpha;
     this.beta = beta;

@@ -2,7 +2,9 @@
 
 	<title> Arbitrary Go </title>
 	<script src="two.js"></script>
-	<script src="go_javascript.js"></script>
+	<script src="go_basics.js"></script>
+	<script src="go_board.js"></script>
+	<script src="go_main.js"></script>
 	<meta charset="UTF-8">
 
 	<style type="text/css">
@@ -37,7 +39,11 @@
 	</div>
 
 	<div align="center">
-		<p id="score" class="score">hello</p>
+		<p>
+			Black Leads by:
+			<span id="score" class="score">0</span>
+			points
+		</p>
 	</div>
 
 	<div align="center" id="goBoard"></div>
@@ -47,7 +53,7 @@
 	</div>
 
 	<script>
-		main()
+		main();
 	</script>
 
 </body>

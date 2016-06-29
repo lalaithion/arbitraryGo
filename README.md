@@ -2,8 +2,14 @@
 
 An engine that allows playing the board game Go on arbitrary graphs
 
-# How To Run
+# How to Run
 
-Run the file "go_graph.py" using Python 3.
+Open the file go_web.html in the src directory.
 
-The other files implement standard, square grid Go.
+This can also be found on izaakweiss.com/arbitraryGo
+
+### What is prototype?
+
+I'm more comfortable in python than javascript, so I built a prototype version
+of this program in python. The source for that is in prototype. It requires
+python 3 and the pyopengl bindings.

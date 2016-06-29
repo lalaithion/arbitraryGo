@@ -96,7 +96,7 @@ class Point {
       var unexplored = !this.edges[i].liberty;
       if (sameplayer && unexplored) {
         this.edges[i].liberty = true;
-        this.edges[i].explore;
+        this.edges[i].explore();
       }
     }
   }

@@ -15,6 +15,7 @@ class Board {
     this.turn = 1;
     this.lastmove = null;
     this.current = -1;
+    this.passed = false;
   }
 
   generateRandomPoints(size, dim) {
@@ -197,6 +198,7 @@ class Board {
   }
 
   play(x, y) {
+    this.passed = false;
     this.setCurrent(x, y);
     if (this.points[this.current].player == 0) {
       this.points[this.current].update(this.turn);
@@ -301,5 +303,15 @@ class Board {
     }
 
     return blackscore - whitescore;
+  }
+
+  pass() {
+    if (this.turn == 1) {
+      this.turn = 2;
+    } else {
+      this.turn = 1;
+    }
+
+    this.passed = true;
   }
 }

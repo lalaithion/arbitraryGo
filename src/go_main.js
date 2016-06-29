@@ -31,6 +31,10 @@ function main() {
     board = new Board(7, 700, 2);
   };
 
+  document.getElementById('pass').onclick = function () {
+    board.pass();
+  };
+
   two.bind('update', function (frameCount) {
     two.clear();
     board.draw(two);

@@ -12,12 +12,12 @@ def rect(a, b, color):
     rect(a,b,color) :: ( (int,int) (int,int) (float,float,float) )
     rect draws a rectangle defined by corners 'a' and 'b' and colored 'color'
     '''
-    glColor3f(*color)                                     
+    glColor3f(*color)
     glBegin(GL_QUADS)
-    glVertex2f(*a)                                       
-    glVertex2f(a[0], b[1]) 
-    glVertex2f(*b)                                                   
-    glVertex2f(b[0],a[1])              
+    glVertex2f(*a)
+    glVertex2f(a[0], b[1])
+    glVertex2f(*b)
+    glVertex2f(b[0],a[1])
     glEnd()
 
 
@@ -26,7 +26,7 @@ class Grid:
         '''
         init creates a go board with dimensions size * size in a window that is dim * dim.
         '''
-        self.squares = [[ 
+        self.squares = [[
                   [(-1+2*(i/size),1-2*(j/size)),(-1+2*((i+1)/size),1-2*((j+1)/size)),0]
                   for i in range(size)]
                   for j in range(size)]
@@ -41,7 +41,7 @@ class Grid:
         '''
         render draws every square and determines their color
         '''
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)     
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
         for i, row in enumerate(self.squares):
             for j, sq in enumerate(row):
@@ -51,7 +51,7 @@ class Grid:
                     rect(sq[0], sq[1], (0.9,0.9,0.9))
                 else:
                     rect(sq[0], sq[1], (0.87,0.82,0.71))
-        glutSwapBuffers() 
+        glutSwapBuffers()
 
     def capture(self,turn,x,y):
         '''
@@ -115,21 +115,21 @@ class Grid:
                     self.capture(2,row,col)
             #print(self.score()) #Not implemented right now.
 
-                                  
+
 if __name__ == "__main__":
 
     window_dim = 800
     board = Grid(11,window_dim)
 
-    glutInit()                                                 
+    glutInit()
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
-    glutInitWindowSize(window_dim, window_dim)                          
-    glutInitWindowPosition(0, 0)                               
+    glutInitWindowSize(window_dim, window_dim)
+    glutInitWindowPosition(0, 0)
     window = glutCreateWindow("Game")
 
-    glutDisplayFunc(board.render)                                      
-    glutIdleFunc(board.render)   
+    glutDisplayFunc(board.render)
+    glutIdleFunc(board.render)
     glutPassiveMotionFunc(board.update_active)
     glutMouseFunc(board.click)
 
-    glutMainLoop()  
+    glutMainLoop()
